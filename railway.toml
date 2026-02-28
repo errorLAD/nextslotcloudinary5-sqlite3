@@ -1,0 +1,36 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "gunicorn booking_saas.wsgi:application --bind 0.0.0.0:$PORT"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[env]
+DJANGO_SETTINGS_MODULE = "booking_saas.settings"
+PYTHON_VERSION = "3.11"
+
+# SQLite3 database will be created automatically
+# No DATABASE_URL needed - using local SQLite3 file
+
+[[services]]
+name = "web"
+
+[services.web]
+source = "."
+
+[services.web.build]
+builder = "NIXPACKS"
+
+[services.web.deploy]
+startCommand = "gunicorn booking_saas.wsgi:application --bind 0.0.0.0:$PORT"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[services.web.env]
+DJANGO_SETTINGS_MODULE = "booking_saas.settings"
+PYTHON_VERSION = "3.11"

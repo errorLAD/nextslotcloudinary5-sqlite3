@@ -1,0 +1,1093 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load provider_tags %}
+
+{% block title %}Custom Domain Settings - {{ provider.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .domain-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 3rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
+    .domain-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .step-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        height: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    
+    .step-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+    
+    .domain-input-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .domain-input-group {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .domain-input-group input {
+        border: none;
+        background: transparent;
+        font-size: 1.25rem;
+        padding: 1rem;
+        flex: 1;
+    }
+    
+    .domain-input-group input:focus {
+        outline: none;
+    }
+    
+    .domain-input-group .btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 10px;
+    }
+    
+    .dns-table {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .dns-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .dns-table th {
+        padding: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .dns-table td {
+        padding: 1.25rem;
+        vertical-align: middle;
+    }
+    
+    .dns-table tbody tr {
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .dns-table tbody tr:last-child {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #8b4513;
+    }
+    
+    .status-verified {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #155724;
+    }
+    
+    .status-not-configured {
+        background: #e9ecef;
+        color: #6c757d;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border-left: 4px solid #0284c7;
+    }
+    
+    .warning-card {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border-left: 4px solid #d97706;
+    }
+    
+    .success-card {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .copy-btn {
+        background: #e9ecef;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+        background: #dee2e6;
+    }
+    
+    .copy-btn.copied {
+        background: #d1fae5;
+        color: #059669;
+    }
+    
+    .cloudflare-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f48120;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+        .domain-hero {
+            padding: 2rem 1.5rem;
+        }
+        
+        .domain-hero h1 {
+            font-size: 1.75rem;
+        }
+        
+        .domain-input-section {
+            padding: 1.5rem;
+        }
+        
+        .domain-input-group {
+            flex-direction: column;
+        }
+        
+        .domain-input-group input {
+            width: 100%;
+        }
+        
+        .domain-input-group .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Back Button -->
+    <a href="{% url 'providers:dashboard' %}" class="btn btn-outline-secondary mb-4">
+        <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+    </a>
+    
+    <!-- Hero Section -->
+    <div class="domain-hero">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1><i class="bi bi-globe2 me-3"></i>Custom Domain Setup</h1>
+                <p class="lead mb-3 opacity-90">
+                    Connect your own domain to your booking page on our DigitalOcean infrastructure.
+                    SSL certificates are automatic and free via Let's Encrypt.
+                </p>
+                <p class="opacity-85 mb-0" style="font-size: 0.95rem;">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Hosting:</strong> DigitalOcean App Platform | 
+                    <strong>SSL:</strong> Let's Encrypt (Auto-renewing every 90 days) | 
+                    <strong>Setup Time:</strong> 5-48 hours
+                </p>
+                {% if not provider.has_pro_features %}
+                <div class="alert alert-warning d-inline-block mt-3 mb-0 py-2 px-3" style="background: rgba(255,255,255,0.9);">
+                    <i class="bi bi-lock-fill me-2"></i> 
+                    <strong>PRO Feature:</strong> 
+                    <a href="{% url 'subscriptions:upgrade_to_pro' %}" class="text-decoration-underline">Upgrade to PRO</a> to use custom domains.
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                {% if provider.domain_verified %}
+                    <span class="status-badge status-verified">
+                        <i class="bi bi-check-circle-fill"></i> Verified
+                    </span>
+                {% elif provider.custom_domain %}
+                    <span class="status-badge status-pending">
+                        <i class="bi bi-clock-fill"></i> Pending Verification
+                    </span>
+                {% else %}
+                    <span class="status-badge status-not-configured">
+                        <i class="bi bi-gear-fill"></i> Not Configured
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}-fill me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if provider.domain_verified %}
+    <!-- Domain Verified State -->
+    <div class="success-card mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+        <h2 class="mt-3 mb-2">Your Domain is Active!</h2>
+        <p class="text-muted mb-4">Your booking page is now accessible at:</p>
+        <a href="https://{{ provider.custom_domain }}" target="_blank" class="btn btn-lg btn-primary mb-4">
+            <i class="bi bi-box-arrow-up-right me-2"></i> https://{{ provider.custom_domain }}
+        </a>
+        <hr class="my-4">
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#removeDomainModal">
+            <i class="bi bi-trash me-2"></i> Remove Domain
+        </button>
+    </div>
+    
+    {% elif provider.custom_domain %}
+    <!-- Pending Verification State -->
+    <div class="domain-input-section">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h4 class="mb-1">Current Domain</h4>
+                <p class="text-muted mb-0">Configure DNS records to complete setup</p>
+            </div>
+            <code class="bg-light px-4 py-2 rounded-pill fs-5">{{ provider.custom_domain }}</code>
+        </div>
+        
+        <div class="warning-card mb-4">
+            <div class="d-flex align-items-start">
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3"></i>
+                <div>
+                    <h6 class="mb-1">Waiting for DNS Configuration</h6>
+                    <p class="mb-0">Add the DNS records below in your domain registrar (GoDaddy, Namecheap, Route53, Google Domains, etc). Then click "Verify Domain".</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- DNS Records Configuration Section -->
+    <div class="mb-4">
+        <h4 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>DNS Records Configuration</h4>
+        
+        <!-- Instructions Info -->
+        <div class="info-card mb-4">
+            <h6 class="mb-2"><i class="bi bi-server me-2"></i>DigitalOcean Multi-Domain DNS Setup</h6>
+            <p class="mb-2">
+                <strong>How it works:</strong> Each provider's custom domain needs a CNAME record pointing to their subdomain on nextslot.in. 
+                This allows you to use your own domain while maintaining our DigitalOcean hosting infrastructure.
+            </p>
+            <p class="mb-0">
+                <strong>Example for okmentor.in:</strong><br>
+                <code class="bg-light px-2 py-1">okmentor.in</code> 
+                <span class="text-muted small">CNAME →</span> 
+                <code class="bg-light px-2 py-1">okmentor.nextslot.in</code>
+                <span class="text-muted small">CNAME →</span> 
+                <code class="bg-light px-2 py-1">app.ondigitalocean.app</code>
+            </p>
+            <p class="mb-0 mt-2"><strong>Time to propagate:</strong> Usually 5-30 minutes, but can take up to 48 hours.</p>
+        </div>
+        
+        <!-- CNAME Record (Primary) -->
+        <div style="background: #f8fafb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #10b981;">
+            <div class="d-flex align-items-center mb-3">
+                <span style="background: #10b981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem;">1</span>
+                <h6 class="mb-0"><i class="bi bi-link-45deg me-2"></i>CNAME Record (Recommended - Add at Your Registrar)</h6>
+            </div>
+            
+            <div class="alert alert-info mb-3" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Your Provider Subdomain:</strong> 
+                <code class="bg-light px-2">{{ provider.unique_booking_url }}.nextslot.in</code>
+                <br>
+                <small>This connects your custom domain to our DigitalOcean app</small>
+            </div>
+            
+            <div class="table-responsive mb-3">
+                <table class="table table-sm mb-0" style="background: white; border-radius: 8px;">
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Type</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">CNAME</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Name / Host / Domain</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded fs-5">{{ provider.custom_domain }}</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('{{ provider.custom_domain }}', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                                <br><small class="text-muted">Leave as root (@) or use www, depending on registrar</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Value / Points To / Target</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-success text-white p-2 rounded fs-5" id="cname-target">{{ provider.unique_booking_url }}.nextslot.in</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('{{ provider.unique_booking_url }}.nextslot.in', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                                <br><small class="text-muted">Include the trailing dot if your registrar requires it</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>TTL (Time To Live)</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">3600</code> 
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('3600', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                                <br><small class="text-muted">Or select "Automatic" / "Auto" from dropdown</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-0 text-muted"><small><i class="bi bi-check-circle me-1"></i>Use CNAME record with all registrars (GoDaddy, Namecheap, AWS Route53, Google Domains, Bluehost, Hostinger, etc)</small></p>
+        </div>
+        
+        <!-- A Record (Alternative) -->
+        <div style="background: #f8fafb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #f59e0b;">
+            <div class="d-flex align-items-center mb-3">
+                <span style="background: #f59e0b; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem;">2</span>
+                <h6 class="mb-0"><i class="bi bi-diagram-2 me-2"></i>A Record (Fallback - Only If CNAME Not Available)</h6>
+            </div>
+            
+            <div class="alert alert-warning mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Only use if:</strong> Your registrar doesn't support CNAME on root domain (rare). Most modern registrars support CNAME now.
+            </div>
+            
+            <div class="table-responsive mb-3">
+                <table class="table table-sm mb-0" style="background: white; border-radius: 8px;">
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Type</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">A</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Name / Host</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">@</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('@', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Value / IP Address</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-info text-white p-2 rounded fs-5">203.0.113.42</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('203.0.113.42', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                                <br><small class="text-muted">DigitalOcean App Platform IP (for reference)</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>TTL</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">3600</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('3600', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-0 text-muted"><small><i class="bi bi-info-circle me-1"></i>A Record not recommended as primary method. Use CNAME above for best results.</small></p>
+        </div>
+        
+        <!-- TXT Verification Record -->
+        <div style="background: #f8fafb; border-radius: 12px; padding: 1.5rem; border-left: 4px solid #8b5cf6;">
+            <div class="d-flex align-items-center mb-3">
+                <span style="background: #8b5cf6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem;">3</span>
+                <h6 class="mb-0"><i class="bi bi-check2-square me-2"></i>TXT Verification Record (Optional but Recommended)</h6>
+            </div>
+            
+            <div class="table-responsive mb-3">
+                <table class="table table-sm mb-0" style="background: white; border-radius: 8px;">
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Type</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">TXT</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Name</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded text-break" style="max-width: 300px;">_booking-verify</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('_booking-verify', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>Value</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded text-break" style="max-width: 300px; display: inline-block; font-size: 0.85rem;">{{ verification_code }}</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('{{ verification_code }}', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;"><strong>TTL</strong></td>
+                            <td style="padding: 0.75rem; border: 1px solid #e0e0e0;">
+                                <code class="bg-light p-2 rounded">3600</code>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('3600', this)">
+                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-0 text-muted"><small>📌 This record helps verify domain ownership. Copy the exact value provided above.</small></p>
+        </div>
+    </div>
+    
+    <!-- Complete Setup Guide -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="step-card">
+                <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Step-by-Step Setup Guide</h5>
+                
+                <div style="background: #f0f9ff; border-left: 4px solid #0284c7; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <strong style="color: #0c4a6e;">📝 Follow these steps in order:</strong>
+                </div>
+                
+                <ol class="ps-3">
+                    <li class="mb-4">
+                        <strong>1. Log in to Your Domain Registrar</strong>
+                        <p class="text-muted mb-2">Access your account at your domain provider (GoDaddy, Namecheap, AWS Route53, Google Domains, Bluehost, HostGator, etc.)</p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>2. Navigate to DNS Settings</strong>
+                        <p class="text-muted mb-2">Look for "DNS Management", "DNS Settings", "DNS Records", or "Manage DNS" (the name varies by registrar)</p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>3. Add CNAME Record (Primary Method)</strong>
+                        <div class="bg-light p-3 rounded mb-2" style="border-left: 4px solid #10b981;">
+                            <code><strong>Type:</strong> CNAME</code><br>
+                            <code><strong>Name/Host:</strong> @</code> or <code>www</code><br>
+                            <code><strong>Value/Target:</strong> {{ cname_target }}</code><br>
+                            <code><strong>TTL:</strong> 3600</code> (or "Auto")
+                        </div>
+                        <p class="text-muted mb-0"><small>Copy and paste the values exactly as shown. The "@" symbol means root domain.</small></p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>4. Add TXT Verification Record (Recommended)</strong>
+                        <div class="bg-light p-3 rounded mb-2" style="border-left: 4px solid #8b5cf6;">
+                            <code><strong>Type:</strong> TXT</code><br>
+                            <code><strong>Name:</strong> _booking-verify</code><br>
+                            <code><strong>Value:</strong> {{ verification_code }}</code><br>
+                            <code><strong>TTL:</strong> 3600</code>
+                        </div>
+                        <p class="text-muted mb-0"><small>This verifies you own the domain. Copy the entire verification code exactly.</small></p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>5. Save All DNS Records</strong>
+                        <p class="text-muted mb-2">Click "Save", "Update", or "Apply" to save your DNS changes</p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>6. Wait for DNS Propagation</strong>
+                        <p class="text-muted mb-2">DNS changes can take 5 minutes to 48 hours to propagate. Usually it's 30 minutes. You can check status at <a href="https://mxtoolbox.com/cname.aspx" target="_blank">mxtoolbox.com</a></p>
+                    </li>
+                    <li class="mb-4">
+                        <strong>7. Verify Your Domain</strong>
+                        <p class="text-muted mb-2">Click the "Verify Domain" button below to check if DNS is configured correctly</p>
+                    </li>
+                </ol>
+                
+                <div class="success-card mt-4">
+                    <p class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1.5rem;"></i>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Your domain will be live at:</strong>
+                    </p>
+                    <p class="mb-0" style="font-size: 1.25rem; font-weight: 600;">
+                        <code>https://{{ provider.custom_domain }}</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline & SSL Info Sidebar -->
+        <div class="col-lg-4">
+            <!-- Timeline Card -->
+            <div class="step-card mb-4">
+                <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Timeline</h5>
+                <div class="ps-2">
+                    <div class="mb-3">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 50px; height: 50px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0c4a6e; flex-shrink: 0;">1</div>
+                            <div>
+                                <strong style="display: block; color: #333;">5 minutes</strong>
+                                <small class="text-muted">Add DNS records</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; color: #ddd; margin: 1rem 0;">↓</div>
+                    
+                    <div class="mb-3">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 50px; height: 50px; background: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #92400e; flex-shrink: 0;">2</div>
+                            <div>
+                                <strong style="display: block; color: #333;">5-30 min</strong>
+                                <small class="text-muted">DNS propagation</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; color: #ddd; margin: 1rem 0;">↓</div>
+                    
+                    <div class="mb-3">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 50px; height: 50px; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #065f46; flex-shrink: 0;">3</div>
+                            <div>
+                                <strong style="display: block; color: #333;">Automatic</strong>
+                                <small class="text-muted">SSL generates</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #d1fae5; border: 2px solid #6ee7b7; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; text-align: center;">
+                        <strong style="color: #065f46;">✓ Total: 15-50 min</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SSL Certificate Info Card -->
+            <div class="step-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bae6fd 100%); border: none;">
+                <h6 class="mb-2" style="color: #0c4a6e;"><i class="bi bi-shield-lock me-2"></i>SSL Certificate</h6>
+                
+                <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p class="mb-2"><strong style="color: #333;">Automatic & Free</strong></p>
+                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                        ✓ Let's Encrypt<br>
+                        ✓ Auto-renewal every 90 days<br>
+                        ✓ No cost, no action needed<br>
+                        ✓ HTTPS encryption included
+                    </p>
+                </div>
+                
+                <div style="background: white; padding: 1rem; border-radius: 8px;">
+                    <p class="mb-2"><strong style="color: #333;">What is SSL?</strong></p>
+                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                        SSL encrypts data between visitors' browsers and your server. The lock icon 🔒 shows in the address bar when SSL is active.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registrar Quick Links -->
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-link-45deg me-2"></i>DNS Management Links by Registrar</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>GoDaddy</strong><br>
+                    <small class="text-muted">Login → Products → Domains → Manage → DNS</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>Namecheap</strong><br>
+                    <small class="text-muted">Dashboard → Domain List → Manage → DNS Records</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>AWS Route53</strong><br>
+                    <small class="text-muted">Route53 → Hosted Zones → Your Domain → Add Records</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>Google Domains</strong><br>
+                    <small class="text-muted">Your Domains → Select Domain → DNS → Custom Records</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>Bluehost</strong><br>
+                    <small class="text-muted">cPanel → Domains → Zone Editor → Add Record</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <strong>HostGator</strong><br>
+                    <small class="text-muted">cPanel → Advanced DNS Manager → Add Record</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Verification & Action Section -->
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-terminal me-2"></i>Verification & Next Steps</h5>
+        
+        <div style="background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); border-left: 4px solid #8b5cf6; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h6 style="color: #6b21a8; margin-bottom: 1rem;"><i class="bi bi-check2-all me-2"></i>Before Verifying</h6>
+            <ul style="margin: 0; padding-left: 1.5rem; color: #6b21a8;">
+                <li>✓ Added CNAME record to your registrar</li>
+                <li>✓ Waited at least 5 minutes for propagation</li>
+                <li>✓ (Optional) Added TXT verification record</li>
+                <li>✓ Checked DNS status at mxtoolbox.com</li>
+            </ul>
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div style="background: white; border: 2px solid #10b981; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                    <form method="post" action="{% url 'providers:verify_domain' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg w-100" style="margin-bottom: 0.5rem;">
+                            <i class="bi bi-arrow-repeat me-2"></i> Verify Domain Now
+                        </button>
+                    </form>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Checks if DNS is configured correctly</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div style="background: white; border: 2px solid #0284c7; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                    <a href="https://mxtoolbox.com/cname.aspx" target="_blank" class="btn btn-info btn-lg w-100" style="margin-bottom: 0.5rem;">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Check DNS Status
+                    </a>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Real-time DNS propagation checker</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SSL Status Section -->
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-shield-check me-2"></i>SSL Certificate Status</h5>
+        
+        <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 8px; padding: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <p style="color: #15803d; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="bi bi-shield-lock me-2"></i>Certificate Provider
+                    </p>
+                    <p style="color: #166534; margin: 0;">Let's Encrypt (Free)</p>
+                </div>
+                <div>
+                    <p style="color: #15803d; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="bi bi-arrow-repeat me-2"></i>Auto-Renewal
+                    </p>
+                    <p style="color: #166534; margin: 0;">Every 90 days (Automatic)</p>
+                </div>
+                <div>
+                    <p style="color: #15803d; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="bi bi-lock me-2"></i>Encryption
+                    </p>
+                    <p style="color: #166534; margin: 0;">256-bit (Industry Standard)</p>
+                </div>
+                <div>
+                    <p style="color: #15803d; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="bi bi-calendar-check me-2"></i>Cost
+                    </p>
+                    <p style="color: #166534; margin: 0;">Completely Free</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Troubleshooting -->
+    <div class="mb-4">
+        <h5 class="mb-3"><i class="bi bi-question-circle me-2"></i>Common Issues & Solutions</h5>
+        
+        <div class="accordion" id="troubleshootingAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                        <i class="bi bi-exclamation-circle me-2"></i> Verification Says DNS Not Configured
+                    </button>
+                </h2>
+                <div id="issue1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Wait at least 5 minutes after adding DNS record</li>
+                            <li>Verify you used exact values (copy-paste recommended)</li>
+                            <li>Check the record type is CNAME (not ALIAS or A)</li>
+                            <li>Visit <a href="https://mxtoolbox.com/cname.aspx" target="_blank">mxtoolbox.com</a> to verify DNS propagation</li>
+                            <li>Try again in 30 minutes if still pending</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                        <i class="bi bi-exclamation-circle me-2"></i> SSL Certificate Not Generating
+                    </button>
+                </h2>
+                <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Wait 5-15 minutes after DNS verification</li>
+                            <li>Certificate is generated automatically after DNS works</li>
+                            <li>Make sure CNAME points to exactly: <code>{{ cname_target }}</code></li>
+                            <li>Refresh page to see updated SSL status</li>
+                            <li>Contact support if SSL still not generated after 30 minutes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue3">
+                        <i class="bi bi-exclamation-circle me-2"></i> CNAME Not Available in My Registrar
+                    </button>
+                </h2>
+                <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Use A Record instead (see DNS configuration above)</li>
+                            <li>Add A record with type "A" pointing to: <code>203.0.113.42</code></li>
+                            <li>Some registrars may call CNAME records "Alias" or "Pointer"</li>
+                            <li>Contact your registrar's support if still having issues</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue4">
+                        <i class="bi bi-exclamation-circle me-2"></i> I Can't Find DNS Settings
+                    </button>
+                </h2>
+                <div id="issue4" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Look for: "DNS Management", "DNS Records", "Manage DNS", "Advanced Settings"</li>
+                            <li>The name varies by registrar</li>
+                            <li>Check the registrar quick links above for your provider</li>
+                            <li>Contact your registrar's support if you still can't find it</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Important Notes -->
+    <div style="background: #fef3c7; border-left: 4px solid #d97706; padding: 1.5rem; border-radius: 8px;">
+        <h6 style="color: #92400e; margin-bottom: 1rem;"><i class="bi bi-info-circle me-2"></i>Important Information</h6>
+        <ul style="margin: 0; padding-left: 1.5rem; color: #92400e;">
+            <li><strong>No Cloudflare needed</strong> - Use your domain registrar's DNS settings directly</li>
+            <li><strong>SSL is automatic</strong> - Generated within 5-15 minutes after DNS is configured</li>
+            <li><strong>Free certificate</strong> - Let's Encrypt provides free HTTPS/SSL</li>
+            <li><strong>Auto-renewal</strong> - Certificate automatically renews every 90 days</li>
+            <li><strong>Full HTTPS</strong> - Your booking page will be secure at https://{{ provider.custom_domain }}</li>
+            <li><strong>DNS propagation time</strong> - Usually 30 minutes but can take up to 48 hours</li>
+        </ul>
+    </div>
+    
+    <!-- More Help Section -->
+    <div class="mt-5 p-4" style="background: #f3f4f6; border-radius: 8px; text-align: center;">
+        <h6 class="mb-2"><i class="bi bi-question-circle me-2"></i>Still Need Help?</h6>
+        <p class="text-muted mb-3">Our support team is ready to assist you with custom domain setup</p>
+        <a href="mailto:support@nextslot.in" class="btn btn-primary me-2">
+            <i class="bi bi-envelope me-2"></i> Email Support
+        </a>
+        <a href="https://mxtoolbox.com/cname.aspx" target="_blank" class="btn btn-outline-primary">
+            <i class="bi bi-box-arrow-up-right me-2"></i> Check DNS Now
+        </a>
+    </div>
+    
+    <!-- Cancel Setup Button -->
+    <div class="mt-4">
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#removeDomainModal">
+            <i class="bi bi-trash me-2"></i> Remove This Domain & Start Over
+        </button>
+    </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="success-card h-100">
+                <h6 class="mb-2"><i class="bi bi-check-circle me-2"></i>DNS Propagation</h6>
+                <p class="mb-0">Most registrars show DNS changes within <strong>5-30 minutes</strong>. Check with <a href="https://mxtoolbox.com/cname.aspx" target="_blank" class="text-decoration-none">MXToolbox</a>.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="d-flex gap-3 flex-wrap">
+        <form method="post" action="{% url 'providers:verify_domain' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="bi bi-arrow-repeat me-2"></i> Verify Domain
+            </button>
+        </form>
+        <a href="https://mxtoolbox.com/cname.aspx" target="_blank" class="btn btn-info btn-lg">
+            <i class="bi bi-box-arrow-up-right me-2"></i> Check DNS Status
+        </a>
+        <button type="button" class="btn btn-outline-danger btn-lg" data-bs-toggle="modal" data-bs-target="#removeDomainModal">
+            <i class="bi bi-x-lg me-2"></i> Cancel Setup
+        </button>
+    </div>
+
+    {% else %}
+    <!-- No Domain - Setup Form -->
+    <div class="domain-input-section">
+        <!-- Option 1: Subdomain (Instant - Recommended) -->
+        <div class="card border-success mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge-fill me-2"></i>Option 1: Instant Subdomain (Recommended)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Get your branded booking page instantly - no DNS setup required!</p>
+                
+                <form method="post" action="{% url 'providers:add_custom_domain' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="domain_type" value="subdomain">
+                    <div class="input-group mb-3">
+                        <input type="text" 
+                               class="form-control form-control-lg"
+                               name="domain" 
+                               placeholder="your-business-name" 
+                               pattern="[a-zA-Z0-9-]+"
+                               required
+                               style="max-width: 300px;">
+                        <span class="input-group-text bg-light">.nextslot.in</span>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-lg me-2"></i> Activate Now
+                        </button>
+                    </div>
+                    <p class="text-success small mb-0">
+                        <i class="bi bi-check-circle-fill me-1"></i> 
+                        <strong>Instant activation!</strong> No DNS configuration needed. SSL included.
+                    </p>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Option 2: Full Custom Domain -->
+        <div class="card border-primary mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-globe2 me-2"></i>Option 2: Your Own Domain</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Use your own domain like <code>okmentor.in</code> or <code>book.yourbusiness.com</code></p>
+                
+                <div class="alert alert-success mb-3">
+                    <i class="bi bi-lightning-charge-fill me-2"></i>
+                    <strong>Automatic SSL!</strong> Just add a CNAME record and your domain will be active with free SSL.
+                    <ul class="mb-0 mt-2">
+                        <li>Add CNAME pointing to: <code>{{ default_domain }}</code></li>
+                        <li>SSL certificate issued automatically</li>
+                        <li>Usually active within 5-10 minutes</li>
+                    </ul>
+                </div>
+                
+                <form method="post" action="{% url 'providers:add_custom_domain' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="domain_type" value="domain">
+                    <div class="domain-input-group mb-3">
+                        <i class="bi bi-globe2 text-primary fs-4 ms-3"></i>
+                        <input type="text" 
+                               name="domain" 
+                               placeholder="yourdomain.com" 
+                               pattern="[a-zA-Z0-9.-]+"
+                               required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-2"></i> Add Domain
+                        </button>
+                    </div>
+                    <p class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i> 
+                        After adding, you'll see DNS instructions to configure your domain.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How It Works -->
+    <h4 class="mb-4"><i class="bi bi-lightning-charge-fill me-2 text-primary"></i>How It Works</h4>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h5>Enter Domain</h5>
+                <p class="text-muted mb-0">Type your custom domain or subdomain in the field above.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h5>Add DNS Records</h5>
+                <p class="text-muted mb-0">Configure CNAME and TXT records in your Cloudflare dashboard.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h5>Enable Proxy</h5>
+                <p class="text-muted mb-0">Turn on Cloudflare proxy for free SSL and DDoS protection.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card">
+                <div class="step-number">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h5>Go Live!</h5>
+                <p class="text-muted mb-0">Your booking page is now live on your custom domain.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Benefits -->
+    <div class="info-card">
+        <h5 class="mb-3"><i class="bi bi-stars me-2"></i>Benefits of Custom Domain</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>Professional branding</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>Free SSL certificate</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>DDoS protection</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>Better SEO</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>Customer trust</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>Easy to remember</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Remove Domain Modal -->
+{% if provider.custom_domain %}
+<div class="modal fade" id="removeDomainModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Remove Domain
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong>{{ provider.custom_domain }}</strong>?</p>
+                <p class="text-muted small mb-0">Your booking page will still be accessible via the default URL.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'providers:remove_domain' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Remove Domain
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(function() {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+        button.classList.add('copied');
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('copied');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}
