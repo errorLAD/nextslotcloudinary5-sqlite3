@@ -4,7 +4,8 @@ Pillow>=10.1.0
 python-decouple>=3.8
 pytz>=2023.3
 
-# Database - SQLite3 for all environments
+# Database - use psycopg2-binary for Railway
+psycopg2-binary>=2.9.9
 
 # Caching & Task Queue
 redis>=5.0.1
