@@ -20,8 +20,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,liberal-babita-abhishekmishra-6f0b6358.koyeb.app,
-nextslot.in,www.nextslot.in').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,nextslot.in,www.nextslot.in').split(',')
 
 # Domain configuration
 DEFAULT_DOMAIN = config('DEFAULT_DOMAIN', default='nextslot.in')
