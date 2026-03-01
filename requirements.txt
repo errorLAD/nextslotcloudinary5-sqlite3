@@ -89,4 +89,4 @@ django-mathfilters
 
 # DNS lookups (required for domain verification)
 # DNS lookups (required for domain verification)
-dnspython>=2.4.0
+dnspython
